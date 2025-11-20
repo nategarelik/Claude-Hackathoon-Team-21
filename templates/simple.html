@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Badger Course Finder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            background: #c5050c;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .search-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background: #c5050c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #9b0000;
+        }
+        #results {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        .course {
+            border-left: 4px solid #c5050c;
+            padding: 15px;
+            margin: 15px 0;
+            background: #f9f9f9;
+        }
+        .course-code {
+            font-size: 20px;
+            color: #c5050c;
+            font-weight: bold;
+        }
+        .stats {
+            margin-top: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎓 Badger Course Finder</h1>
+        <p>AI-Powered Course Recommendations for UW-Madison</p>
+    </div>
+
+    <div class="search-box">
+        <h2>Find Your Perfect Course</h2>
+        <input type="text" id="query" placeholder="e.g., I need a Comm B class with above 60% A rate">
+        <button onclick="searchCourses()">Search Courses</button>
+
+        <div style="margin-top: 20px;">
+            <p><strong>Try these examples:</strong></p>
+            <ul>
+                <li>I need a Comm B class with above 60% A rate</li>
+                <li>Find me easy Comm A courses</li>
+                <li>Show me computer science courses with good grades</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <h3>🔍 Searching for courses...</h3>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        async function searchCourses() {
+            const query = document.getElementById('query').value;
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query: query})
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+
+                displayResults(data);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            let html = '<h2>📝 Recommendation</h2>';
+            html += '<p>' + data.recommendation + '</p>';
+            html += '<h2>Matching Courses</h2>';
+
+            if (data.courses && data.courses.length > 0) {
+                data.courses.forEach(course => {
+                    const aRate = course.grade_data?.a_rate || 'N/A';
+                    const gpa = course.grade_data?.gpa || 'N/A';
+
+                    html += `
+                        <div class="course">
+                            <div class="course-code">${course.code}</div>
+                            <div style="font-size: 18px; margin: 5px 0;">${course.title}</div>
+                            <div>${course.description}</div>
+                            <div class="stats">
+                                <strong>A Rate:</strong> ${aRate}% |
+                                <strong>GPA:</strong> ${gpa} |
+                                <strong>Credits:</strong> ${course.credits}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<p>No courses found matching your criteria.</p>';
+            }
+
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        // Allow Enter key
+        document.getElementById('query').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchCourses();
+        });
+    </script>
+</body>
+</html>

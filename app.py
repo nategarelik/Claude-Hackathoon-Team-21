@@ -25,6 +25,12 @@ except Exception as e:
 @app.route('/')
 def index():
     """Serve the main page"""
+    return render_template('simple.html')
+
+
+@app.route('/fancy')
+def fancy():
+    """Serve the fancy page"""
     return render_template('index.html')
 
 
