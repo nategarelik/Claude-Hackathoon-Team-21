@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UW-Madison Course Recommender</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #c5050c 0%, #9b0000 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .search-section {
+            margin-bottom: 40px;
+        }
+
+        .search-label {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+            font-weight: 600;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #query-input {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 1em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+        }
+
+        #query-input:focus {
+            outline: none;
+            border-color: #c5050c;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1em;
+            background: #c5050c;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background: #9b0000;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .examples {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .examples h3 {
+            color: #c5050c;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .example-queries {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+        }
+
+        .example-query {
+            padding: 12px 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+
+        .example-query:hover {
+            border-color: #c5050c;
+            background: #fff8f8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #c5050c;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            margin-top: 40px;
+        }
+
+        .recommendation-box {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #c5050c;
+        }
+
+        .recommendation-box h2 {
+            color: #c5050c;
+            margin-bottom: 15px;
+        }
+
+        .recommendation-text {
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+        }
+
+        .courses-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .course-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .course-card:hover {
+            border-color: #c5050c;
+            box-shadow: 0 5px 15px rgba(197,5,12,0.1);
+        }
+
+        .course-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .course-code {
+            font-size: 1.3em;
+            color: #c5050c;
+            font-weight: 700;
+        }
+
+        .course-title {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .course-description {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .grade-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #c5050c;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #f5c6cb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 Badger Course Finder</h1>
+            <p class="subtitle">AI-Powered Course Recommendations for UW-Madison Students</p>
+        </header>
+
+        <div class="main-content">
+            <div class="search-section">
+                <label class="search-label" for="query-input">
+                    What courses are you looking for?
+                </label>
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="query-input"
+                        placeholder="e.g., I need a Comm B class with above 60% A rate"
+                        autocomplete="off"
+                    />
+                    <button class="btn" id="search-btn" onclick="searchCourses()">
+                        Find Courses
+                    </button>
+                </div>
+
+                <div class="examples">
+                    <h3>Try these examples:</h3>
+                    <div class="example-queries">
+                        <div class="example-query" onclick="setQuery(this)">
+                            I need a Comm B class with above 60% A rate
+                        </div>
+                        <div class="example-query" onclick="setQuery(this)">
+                            Find me easy Comm A courses with high GPAs
+                        </div>
+                        <div class="example-query" onclick="setQuery(this)">
+                            Show me computer science courses with good grade distributions
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Claude is searching for the perfect courses for you...</p>
+            </div>
+
+            <div id="error" class="error hidden"></div>
+
+            <div id="results" class="results hidden">
+                <div class="recommendation-box">
+                    <h2>📝 Recommendation</h2>
+                    <div class="recommendation-text" id="recommendation-text"></div>
+                </div>
+
+                <h2 style="margin-bottom: 20px; color: #333;">Matching Courses</h2>
+                <div class="courses-grid" id="courses-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setQuery(element) {
+            document.getElementById('query-input').value = element.textContent.trim();
+        }
+
+        // Allow Enter key to trigger search
+        document.getElementById('query-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchCourses();
+            }
+        });
+
+        async function searchCourses() {
+            const query = document.getElementById('query-input').value.trim();
+
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+
+            // Show loading, hide results and errors
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            document.getElementById('search-btn').disabled = true;
+
+            try {
+                const response = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'An error occurred');
+                }
+
+                displayResults(data);
+
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+                document.getElementById('error').classList.remove('hidden');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('search-btn').disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            // Display recommendation
+            document.getElementById('recommendation-text').textContent = data.recommendation;
+
+            // Display courses
+            const coursesList = document.getElementById('courses-list');
+            coursesList.innerHTML = '';
+
+            if (data.courses && data.courses.length > 0) {
+                data.courses.forEach(course => {
+                    const courseCard = createCourseCard(course);
+                    coursesList.appendChild(courseCard);
+                });
+            } else {
+                coursesList.innerHTML = '<p>No courses found matching your criteria.</p>';
+            }
+
+            // Show results
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function createCourseCard(course) {
+            const card = document.createElement('div');
+            card.className = 'course-card';
+
+            const gradeData = course.grade_data || {};
+            const aRate = gradeData.a_rate ? gradeData.a_rate.toFixed(1) : 'N/A';
+            const gpa = gradeData.gpa ? gradeData.gpa.toFixed(2) : 'N/A';
+
+            const attributes = course.attributes || [];
+            const attributeBadges = attributes.map(attr =>
+                `<span class="badge badge-info">${attr}</span>`
+            ).join(' ');
+
+            card.innerHTML = `
+                <div class="course-header">
+                    <div>
+                        <div class="course-code">${course.code}</div>
+                        <div class="course-title">${course.title}</div>
+                    </div>
+                </div>
+                <div class="course-description">${course.description}</div>
+                <div class="course-meta">
+                    <div class="meta-item">
+                        <strong>Credits:</strong> ${course.credits}
+                    </div>
+                    <div class="meta-item">
+                        ${attributeBadges}
+                    </div>
+                </div>
+                <div class="grade-stats">
+                    <div class="stat">
+                        <div class="stat-value">${aRate}%</div>
+                        <div class="stat-label">A Rate</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${gpa}</div>
+                        <div class="stat-label">Avg GPA</div>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Check health on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                if (!data.agent_ready) {
+                    document.getElementById('error').textContent =
+                        'Warning: API not fully initialized. Please check that ANTHROPIC_API_KEY is set.';
+                    document.getElementById('error').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Health check failed:', error);
+            }
+        });
+    </script>
+</body>
+</html>
