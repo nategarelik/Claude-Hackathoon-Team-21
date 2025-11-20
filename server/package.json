@@ -1,0 +1,24 @@
+{
+  "name": "uw-course-recommender-server",
+  "version": "1.0.0",
+  "description": "Backend for UW Madison course recommendation system",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "@anthropic-ai/sdk": "^0.27.0",
+    "axios": "^1.6.0",
+    "puppeteer": "^21.5.0",
+    "pdf-parse": "^1.1.1",
+    "node-cache": "^5.1.2",
+    "dotenv": "^16.3.1",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
