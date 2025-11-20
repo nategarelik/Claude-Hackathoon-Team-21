@@ -28,6 +28,12 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/test')
+def test():
+    """Simple test page"""
+    return render_template('test.html')
+
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
