@@ -72,7 +72,7 @@
     "tailwindcss": "^4.1.14",
     "tailwindcss-animate": "^1.0.7",
     "timeago.js": "^4.0.2",
-    "tsx": "^4.20.5",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.2",
     "vaul-svelte": "^1.0.0-next.7",
     "vite": "^7.1.11",
@@ -85,6 +85,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0",
     "@schedule-x/calendar": "^2.36.0",
     "@schedule-x/calendar-controls": "^2.36.0",
     "@schedule-x/current-time": "^2.36.0",

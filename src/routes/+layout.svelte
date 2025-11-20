@@ -7,6 +7,7 @@
   import { Toaster } from "$lib/components/ui/sonner";
   import { page } from "$app/state";
   import NavigationOverlay from "$lib/components/navigation-overlay.svelte";
+  import ChatSidebar from "$lib/components/ai/chat-sidebar.svelte";
 
   let { children, data } = $props();
 </script>
@@ -25,6 +26,7 @@
 
 <ModeWatcher />
 <Toaster />
+<ChatSidebar />
 <NavigationOverlay />
 <div class="flex h-screen min-h-screen flex-col">
     <Navbar />
