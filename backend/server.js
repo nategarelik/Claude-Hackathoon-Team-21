@@ -309,7 +309,7 @@ app.post('/api/chat', async (req, res) => {
 
     // Initial request to Claude
     let response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 4096,
       tools: tools,
       messages: messages,
@@ -317,14 +317,24 @@ app.post('/api/chat', async (req, res) => {
 
     // Handle tool use in a loop
     while (response.stop_reason === 'tool_use') {
-      const toolUse = response.content.find((block) => block.type === 'tool_use');
+      // Find ALL tool_use blocks in the response
+      const toolUseBlocks = response.content.filter((block) => block.type === 'tool_use');
 
-      if (!toolUse) break;
+      if (toolUseBlocks.length === 0) break;
 
-      // Execute the tool
-      const toolResult = await processToolCall(toolUse.name, toolUse.input);
+      // Execute all tools
+      const toolResults = await Promise.all(
+        toolUseBlocks.map(async (toolUse) => {
+          const result = await processToolCall(toolUse.name, toolUse.input);
+          return {
+            type: 'tool_result',
+            tool_use_id: toolUse.id,
+            content: JSON.stringify(result),
+          };
+        })
+      );
 
-      // Add assistant's response and tool result to messages
+      // Add assistant's response and all tool results to messages
       messages.push({
         role: 'assistant',
         content: response.content,
@@ -332,18 +342,12 @@ app.post('/api/chat', async (req, res) => {
 
       messages.push({
         role: 'user',
-        content: [
-          {
-            type: 'tool_result',
-            tool_use_id: toolUse.id,
-            content: JSON.stringify(toolResult),
-          },
-        ],
+        content: toolResults,
       });
 
       // Continue the conversation
       response = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 4096,
         tools: tools,
         messages: messages,
